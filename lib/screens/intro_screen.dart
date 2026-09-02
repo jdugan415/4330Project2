@@ -127,7 +127,7 @@ class _IntroScreenState extends State<IntroScreen>
                     ),
                     const SizedBox(height: 24),
                     const Text(
-                      'by Jack Dugan and Andrew Kilpatric',
+                      'by Jack Dugan and Andrew Kilpatrick',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Color(0xFFD9CFEF),
