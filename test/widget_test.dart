@@ -6,8 +6,15 @@ import 'package:rps_game/models/game_choice.dart';
 import 'package:rps_game/screens/game_screen.dart';
 
 void main() {
-  testWidgets('shows title, choices, and zero scoreboard', (tester) async {
+  testWidgets('opening credits transition into the playable game', (
+    tester,
+  ) async {
     await tester.pumpWidget(const RockPaperScissorsApp());
+    expect(find.text('THE GAME'), findsOneWidget);
+    expect(find.text('by Jack Dugan and Andrew Kilpatric'), findsOneWidget);
+    expect(find.byType(GameScreen), findsNothing);
+    await tester.pump(const Duration(milliseconds: 3200));
+    await tester.pumpAndSettle();
     expect(find.text('Rock Paper Scissors'), findsOneWidget);
     for (final label in ['Rock', 'Paper', 'Scissors']) {
       expect(find.text(label), findsOneWidget);
