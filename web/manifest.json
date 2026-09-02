@@ -1,0 +1,35 @@
+{
+  "name": "Rock Paper Scissors The Game",
+  "short_name": "RPS Game",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#14102B",
+  "theme_color": "#14102B",
+  "description": "Rock Paper Scissors by Jack Dugan and Andrew Kilpatric.",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icons/Icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/Icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/Icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/Icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
