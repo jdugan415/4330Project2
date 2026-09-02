@@ -21,14 +21,27 @@ void main() {
     }
     expect(find.text('0'), findsNWidgets(4));
   });
-  testWidgets('tapping a choice completes one round', (tester) async {
-    final c = GameController(choiceGenerator: () => GameChoice.scissors);
-    await tester.pumpWidget(MaterialApp(home: GameScreen(controller: c)));
-    await tester.tap(find.byKey(const ValueKey('choice-rock')));
-    await tester.pumpAndSettle();
-    expect(c.roundsPlayed, 1);
-    expect(find.text('You win!'), findsOneWidget);
-  });
+  testWidgets(
+    'computer pauses and ignores extra taps before revealing a round',
+    (tester) async {
+      final c = GameController(choiceGenerator: () => GameChoice.scissors);
+      await tester.pumpWidget(MaterialApp(home: GameScreen(controller: c)));
+      await tester.tap(find.byKey(const ValueKey('choice-rock')));
+      await tester.pump();
+      expect(find.text('Computer is choosing…'), findsOneWidget);
+      expect(c.roundsPlayed, 0);
+      expect(c.computerChoice, isNull);
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.tap(find.byKey(const ValueKey('choice-paper')));
+      expect(c.roundsPlayed, 0);
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.pumpAndSettle();
+      expect(c.roundsPlayed, 1);
+      expect(c.playerChoice, GameChoice.rock);
+      expect(find.text('Computer is choosing…'), findsNothing);
+      expect(find.text('You win!'), findsOneWidget);
+    },
+  );
   testWidgets('reset confirmation clears game', (tester) async {
     final c = GameController(choiceGenerator: () => GameChoice.rock);
     await tester.pumpWidget(MaterialApp(home: GameScreen(controller: c)));
@@ -42,5 +55,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(c.roundsPlayed, 0);
     expect(find.text('Make your first move'), findsOneWidget);
+  });
+  testWidgets('leaving while computer chooses cancels the round', (
+    tester,
+  ) async {
+    final c = GameController(choiceGenerator: () => GameChoice.rock);
+    addTearDown(c.dispose);
+    await tester.pumpWidget(MaterialApp(home: GameScreen(controller: c)));
+    await tester.tap(find.byKey(const ValueKey('choice-rock')));
+    await tester.pump();
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 2));
+    expect(c.roundsPlayed, 0);
+    expect(tester.takeException(), isNull);
   });
 }

@@ -3,9 +3,15 @@ import 'package:flutter/material.dart';
 import '../models/game_choice.dart';
 
 class ChoiceDisplay extends StatelessWidget {
-  const ChoiceDisplay({required this.title, required this.choice, super.key});
+  const ChoiceDisplay({
+    required this.title,
+    required this.choice,
+    this.isChoosing = false,
+    super.key,
+  });
   final String title;
   final GameChoice? choice;
+  final bool isChoosing;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +28,20 @@ class ChoiceDisplay extends StatelessWidget {
               duration: const Duration(milliseconds: 220),
               transitionBuilder: (child, animation) =>
                   ScaleTransition(scale: animation, child: child),
-              child: choice == null
+              child: isChoosing
+                  ? const Column(
+                      key: ValueKey('choosing'),
+                      children: [
+                        SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: CircularProgressIndicator(strokeWidth: 3),
+                        ),
+                        SizedBox(height: 8),
+                        Text('Thinking…', textAlign: TextAlign.center),
+                      ],
+                    )
+                  : choice == null
                   ? Column(
                       key: const ValueKey('waiting'),
                       children: [

@@ -11,13 +11,14 @@ class ChoiceButton extends StatelessWidget {
   });
   final GameChoice choice;
   final bool selected;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Semantics(
       button: true,
+      enabled: onPressed != null,
       selected: selected,
       label: 'Choose ${choice.label}',
       child: AnimatedContainer(

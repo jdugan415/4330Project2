@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../controllers/game_controller.dart';
@@ -18,8 +20,23 @@ class _GameScreenState extends State<GameScreen> {
   late final GameController _controller = widget.controller ?? GameController();
   late final bool _ownsController = widget.controller == null;
 
+  Timer? _choiceTimer;
+  GameChoice? _pendingChoice;
+  bool get _isChoosing => _pendingChoice != null;
+
+  void _chooseMove(GameChoice choice) {
+    if (_isChoosing) return;
+    setState(() => _pendingChoice = choice);
+    _choiceTimer = Timer(const Duration(milliseconds: 1200), () {
+      if (!mounted) return;
+      _controller.playRound(choice);
+      setState(() => _pendingChoice = null);
+    });
+  }
+
   @override
   void dispose() {
+    _choiceTimer?.cancel();
     if (_ownsController) _controller.dispose();
     super.dispose();
   }
@@ -43,7 +60,7 @@ class _GameScreenState extends State<GameScreen> {
         ],
       ),
     );
-    if (confirmed == true) _controller.reset();
+    if (mounted && confirmed == true) _controller.reset();
   }
 
   @override
@@ -87,9 +104,13 @@ class _GameScreenState extends State<GameScreen> {
                                 width: width.clamp(88, 190),
                                 child: ChoiceButton(
                                   choice: choice,
-                                  selected: _controller.playerChoice == choice,
-                                  onPressed: () =>
-                                      _controller.playRound(choice),
+                                  selected:
+                                      (_pendingChoice ??
+                                          _controller.playerChoice) ==
+                                      choice,
+                                  onPressed: _isChoosing
+                                      ? null
+                                      : () => _chooseMove(choice),
                                 ),
                               ),
                             )
@@ -105,7 +126,7 @@ class _GameScreenState extends State<GameScreen> {
                         Expanded(
                           child: ChoiceDisplay(
                             title: 'You',
-                            choice: _controller.playerChoice,
+                            choice: _pendingChoice ?? _controller.playerChoice,
                           ),
                         ),
                         const Padding(
@@ -115,31 +136,45 @@ class _GameScreenState extends State<GameScreen> {
                         Expanded(
                           child: ChoiceDisplay(
                             title: 'Computer',
-                            choice: _controller.computerChoice,
+                            choice: _isChoosing
+                                ? null
+                                : _controller.computerChoice,
+                            isChoosing: _isChoosing,
                           ),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 18),
-                  Semantics(
-                    liveRegion: true,
-                    label:
-                        '${_controller.resultMessage}. ${_controller.explanation}',
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 220),
+                  if (_isChoosing)
+                    Semantics(
+                      liveRegion: true,
                       child: _ResultPanel(
-                        key: ValueKey(_controller.roundsPlayed),
-                        result: _controller.result,
-                        message: _controller.resultMessage,
-                        explanation: _controller.explanation,
+                        result: null,
+                        message: 'Computer is choosing…',
+                        explanation:
+                            'Your move is locked in. Here comes the reveal!',
+                      ),
+                    )
+                  else
+                    Semantics(
+                      liveRegion: true,
+                      label:
+                          '${_controller.resultMessage}. ${_controller.explanation}',
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 220),
+                        child: _ResultPanel(
+                          key: ValueKey(_controller.roundsPlayed),
+                          result: _controller.result,
+                          message: _controller.resultMessage,
+                          explanation: _controller.explanation,
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(height: 20),
                   OutlinedButton.icon(
                     key: const ValueKey('reset-game'),
-                    onPressed: _requestReset,
+                    onPressed: _isChoosing ? null : _requestReset,
                     icon: const Icon(Icons.refresh_rounded),
                     label: const Text('Reset Game'),
                   ),
